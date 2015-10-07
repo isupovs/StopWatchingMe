@@ -13,7 +13,7 @@ namespace StopWatchingMe
     {
         private readonly List<Process> _processes = new List<Process>();
         private bool _alreadyConnected;
-        private readonly Thread _hidingThread;
+        private Thread _hidingThread;
         private bool _isHiding;
         private IntPtr _selectedWindowHandler = IntPtr.Zero;
 
@@ -91,12 +91,14 @@ namespace StopWatchingMe
             {
                 btnStart.Text = "Stop";
                 _isHiding = true;
+                _hidingThread = new Thread(StartHiding);
                 _hidingThread.Start();
             }
             else
             {
                 btnStart.Text = "Start";
                 _isHiding = false;
+                _hidingThread.Join();
             }
         }
 

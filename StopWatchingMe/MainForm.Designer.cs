@@ -61,10 +61,6 @@
             this.notifyIcon.Visible = true;
             this.notifyIcon.DoubleClick += new System.EventHandler(this.notifyIcon_DoubleClick);
             // 
-            // mainFormBindingSource
-            // 
-            this.mainFormBindingSource.DataSource = typeof(StopWatchingMe.MainForm);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
