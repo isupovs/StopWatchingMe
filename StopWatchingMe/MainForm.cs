@@ -13,9 +13,12 @@ namespace StopWatchingMe
     {
         private readonly List<Process> _processes = new List<Process>();
         private bool _alreadyConnected;
-        private Thread _hidingThread;
+        private readonly Thread _hidingThread;
         private bool _isHiding;
         private IntPtr _selectedWindowHandler = IntPtr.Zero;
+        private const int ALT = 0xA4;
+        private const int EXTENDEDKEY = 0x1;
+        private const int KEYUP = 0x2;
 
         public MainForm()
         {
@@ -26,15 +29,35 @@ namespace StopWatchingMe
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            var processes = Process.GetProcesses().Where(p => !string.IsNullOrEmpty(p.MainWindowTitle)).ToList();
-            _processes.AddRange(processes);
+            timer.Start();
+            mainFormBindingSource.DataSource = _processes;
             processesListBox.DisplayMember = "MainWindowTitle";
             processesListBox.ValueMember = "MainWindowHandle";
-            processesListBox.DataSource = _processes;
+            processesListBox.DataSource = mainFormBindingSource;
+        }
+
+        private void UpdateProcessesList()
+        {
+            _processes.Clear();
+            var processes = Process.GetProcesses().Where(p => !string.IsNullOrEmpty(p.MainWindowTitle)).ToList();
+            _processes.AddRange(processes);
+            mainFormBindingSource.ResetBindings(false);
+            if (_selectedWindowHandler != IntPtr.Zero && _processes.All(p => p.MainWindowHandle != _selectedWindowHandler))
+            {
+                _isHiding = false;
+                _selectedWindowHandler = IntPtr.Zero;
+                selectedWindowLabel.Text = "Selected window:";
+                MessageBox.Show("Selected window has been closed! Hiding stopped!");
+            }
         }
 
         private void StartHiding()
         {
+            if (_selectedWindowHandler == IntPtr.Zero)
+            {
+                MessageBox.Show("Please, select a window");
+                return;
+            }
             while (_isHiding)
             {
                 if (IsPortInUse(5900))
@@ -44,7 +67,16 @@ namespace StopWatchingMe
                         Console.WriteLine("Connected");
                         if (_selectedWindowHandler != IntPtr.Zero)
                         {
-                            ShowWindow(_selectedWindowHandler, ShowWindowCommands.ShowMaximized);
+                            if (IsIconic(_selectedWindowHandler))
+                            {
+                                ShowWindow(_selectedWindowHandler, ShowWindowCommands.Restore);
+                            }
+
+                            // Simulate a key press
+                            keybd_event((byte) ALT, 0x45, EXTENDEDKEY | 0, 0);
+
+                            // Simulate a key release
+                            keybd_event((byte) ALT, 0x45, EXTENDEDKEY | KEYUP, 0);
                             SetForegroundWindow(_selectedWindowHandler);
                         }
                         _alreadyConnected = true;
@@ -75,15 +107,6 @@ namespace StopWatchingMe
             return false;
         }
 
-        [DllImport("user32.dll", EntryPoint = "FindWindow")]
-        private static extern IntPtr FindWindowByCaption(IntPtr ZeroOnly, string lpWindowName);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool ShowWindow(IntPtr hWnd, ShowWindowCommands nCmdShow);
-
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
 
         private void btnStart_Click(object sender, EventArgs e)
         {
@@ -91,20 +114,13 @@ namespace StopWatchingMe
             {
                 btnStart.Text = "Stop";
                 _isHiding = true;
-                _hidingThread = new Thread(StartHiding);
                 _hidingThread.Start();
             }
             else
             {
                 btnStart.Text = "Start";
                 _isHiding = false;
-                _hidingThread.Join();
             }
-        }
-
-        private void processesListBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            _selectedWindowHandler = (IntPtr)processesListBox.SelectedValue;
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -132,6 +148,37 @@ namespace StopWatchingMe
             notifyIcon.Visible = false;
         }
 
+        #region user32.dll imports
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool ShowWindow(IntPtr hWnd, ShowWindowCommands nCmdShow);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsIconic(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, int dwExtraInfo);
+
+        #endregion
+
+        private void timer_Tick(object sender, EventArgs e)
+        {
+            UpdateProcessesList();
+        }
+
+        private void processesListBox_DoubleClick(object sender, EventArgs e)
+        {
+            if (processesListBox != null)
+            {
+                _selectedWindowHandler = (IntPtr) processesListBox.SelectedValue;
+                selectedWindowLabel.Text = " Selected window: " + processesListBox.Text;
+            }
+        }
     }
 
     internal enum ShowWindowCommands
