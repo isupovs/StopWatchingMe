@@ -33,23 +33,27 @@
             this.btnStart = new System.Windows.Forms.Button();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.timer = new System.Windows.Forms.Timer(this.components);
-            this.mainFormBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.selectedWindowLabel = new System.Windows.Forms.Label();
+            this.mainFormBindingSource = new System.Windows.Forms.BindingSource(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.mainFormBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // processesListBox
             // 
+            this.processesListBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.processesListBox.FormattingEnabled = true;
             this.processesListBox.Location = new System.Drawing.Point(0, 12);
             this.processesListBox.Name = "processesListBox";
-            this.processesListBox.Size = new System.Drawing.Size(446, 225);
+            this.processesListBox.Size = new System.Drawing.Size(446, 277);
             this.processesListBox.TabIndex = 0;
             this.processesListBox.DoubleClick += new System.EventHandler(this.processesListBox_DoubleClick);
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(12, 243);
+            this.btnStart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnStart.Location = new System.Drawing.Point(12, 306);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(75, 23);
             this.btnStart.TabIndex = 1;
@@ -68,18 +72,19 @@
             this.timer.Interval = 1000;
             this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 
-            // mainFormBindingSource
-            // 
-            this.mainFormBindingSource.DataSource = typeof(StopWatchingMe.MainForm);
-            // 
             // selectedWindowLabel
             // 
+            this.selectedWindowLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.selectedWindowLabel.AutoSize = true;
-            this.selectedWindowLabel.Location = new System.Drawing.Point(12, 269);
+            this.selectedWindowLabel.Location = new System.Drawing.Point(9, 290);
             this.selectedWindowLabel.Name = "selectedWindowLabel";
             this.selectedWindowLabel.Size = new System.Drawing.Size(91, 13);
             this.selectedWindowLabel.TabIndex = 2;
             this.selectedWindowLabel.Text = "Selected window:";
+            // 
+            // mainFormBindingSource
+            // 
+            this.mainFormBindingSource.DataSource = typeof(StopWatchingMe.MainForm);
             // 
             // MainForm
             // 

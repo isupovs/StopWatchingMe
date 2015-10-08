@@ -13,7 +13,7 @@ namespace StopWatchingMe
     {
         private readonly List<Process> _processes = new List<Process>();
         private bool _alreadyConnected;
-        private readonly Thread _hidingThread;
+        private Thread _hidingThread;
         private bool _isHiding;
         private IntPtr _selectedWindowHandler = IntPtr.Zero;
         private const int ALT = 0xA4;
@@ -23,7 +23,6 @@ namespace StopWatchingMe
         public MainForm()
         {
             InitializeComponent();
-            _hidingThread = new Thread(StartHiding);
             notifyIcon.Icon = Icon;
         }
 
@@ -53,11 +52,6 @@ namespace StopWatchingMe
 
         private void StartHiding()
         {
-            if (_selectedWindowHandler == IntPtr.Zero)
-            {
-                MessageBox.Show("Please, select a window");
-                return;
-            }
             while (_isHiding)
             {
                 if (IsPortInUse(5900))
@@ -110,23 +104,40 @@ namespace StopWatchingMe
 
         private void btnStart_Click(object sender, EventArgs e)
         {
+            if (_selectedWindowHandler == IntPtr.Zero)
+            {
+                MessageBox.Show("Please, select a window");
+                return;
+            }
             if (!_isHiding)
             {
-                btnStart.Text = "Stop";
-                _isHiding = true;
-                _hidingThread.Start();
+                StartHidingThread();
             }
             else
             {
-                btnStart.Text = "Start";
-                _isHiding = false;
+                StopHiding();
             }
+        }
+
+        private void StopHiding()
+        {
+            btnStart.Text = "Start";
+            _isHiding = false;
+            _hidingThread.Join();
+        }
+
+        private void StartHidingThread()
+        {
+            btnStart.Text = "Stop";
+            _isHiding = true;
+            _hidingThread = new Thread(StartHiding);
+            _hidingThread.Start();
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             _isHiding = false;
-            if (_hidingThread.IsAlive)
+            if (_hidingThread != null && _hidingThread.IsAlive)
             {
                 _hidingThread.Join();
             }
