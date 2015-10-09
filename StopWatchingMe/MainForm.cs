@@ -41,9 +41,9 @@ namespace StopWatchingMe
             var processes = Process.GetProcesses().Where(p => !string.IsNullOrEmpty(p.MainWindowTitle)).ToList();
             _processes.AddRange(processes);
             mainFormBindingSource.ResetBindings(false);
-            if (_selectedWindowHandler != IntPtr.Zero && _processes.All(p => p.MainWindowHandle != _selectedWindowHandler))
+            if (_selectedWindowHandler != IntPtr.Zero && !IsWindow(_selectedWindowHandler))
             {
-                _isHiding = false;
+                StopHiding();
                 _selectedWindowHandler = IntPtr.Zero;
                 selectedWindowLabel.Text = "Selected window:";
                 MessageBox.Show("Selected window has been closed! Hiding stopped!");
@@ -175,6 +175,9 @@ namespace StopWatchingMe
         [DllImport("user32.dll")]
         private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, int dwExtraInfo);
 
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool IsWindow(IntPtr hWnd);
         #endregion
 
         private void timer_Tick(object sender, EventArgs e)
